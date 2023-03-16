@@ -3,14 +3,17 @@ from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size,
 
 
 class TgUploadStatus:
-    def __init__(self, obj, size, gid, message):
+    def __init__(self, obj, size, gid, listener):
         self.__obj = obj
         self.__size = size
         self.__gid = gid
-        self.message = message
+        self.message = listener.message
 
     def processed_bytes(self):
-        return get_readable_file_size(self.__obj.uploaded_bytes)
+        return self.__obj.uploaded_bytes
+
+    def size_raw(self):
+        return self.__size
 
     def size(self):
         return get_readable_file_size(self.__size)
@@ -30,12 +33,18 @@ class TgUploadStatus:
     def progress(self):
         return f'{round(self.progress_raw(), 2)}%'
 
+    def speed_raw(self):
+        """
+        :return: Upload speed in Bytes/Seconds
+        """
+        return self.__obj.speed
+
     def speed(self):
-        return f'{get_readable_file_size(self.__obj.speed)}/s'
+        return f'{get_readable_file_size(self.speed_raw())}/s'
 
     def eta(self):
         try:
-            seconds = (self.__size - self.__obj.uploaded_bytes) / self.__obj.speed
+            seconds = (self.__size - self.__obj.uploaded_bytes) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
         except ZeroDivisionError:
             return '-'

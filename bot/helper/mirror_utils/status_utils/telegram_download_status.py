@@ -3,19 +3,22 @@ from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size,
 
 
 class TelegramDownloadStatus:
-    def __init__(self, obj, message, gid):
+    def __init__(self, obj, listener, gid):
         self.__obj = obj
         self.__gid = gid
-        self.message = message
+        self.message = listener.message
 
     def gid(self):
         return self.__gid
 
     def processed_bytes(self):
-        return get_readable_file_size(self.__obj.downloaded_bytes)
+        return self.__obj.downloaded_bytes
+
+    def size_raw(self):
+        return self.__obj.size
 
     def size(self):
-        return get_readable_file_size(self.__obj.size)
+        return get_readable_file_size(self.size_raw())
 
     def status(self):
         return MirrorStatus.STATUS_DOWNLOADING
@@ -29,12 +32,18 @@ class TelegramDownloadStatus:
     def progress(self):
         return f'{round(self.progress_raw(), 2)}%'
 
+    def speed_raw(self):
+        """
+        :return: Download speed in Bytes/Seconds
+        """
+        return self.__obj.download_speed
+
     def speed(self):
-        return f'{get_readable_file_size(self.__obj.download_speed)}/s'
+        return f'{get_readable_file_size(self.speed_raw())}/s'
 
     def eta(self):
         try:
-            seconds = (self.__obj.size - self.__obj.downloaded_bytes) / self.__obj.download_speed
+            seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
         except:
             return '-'

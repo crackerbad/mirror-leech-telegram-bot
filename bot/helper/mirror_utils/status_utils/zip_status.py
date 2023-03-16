@@ -37,12 +37,15 @@ class ZipStatus:
     def name(self):
         return self.__name
 
+    def size_raw(self):
+        return self.__size
+
     def size(self):
         return get_readable_file_size(self.__size)
 
     def eta(self):
         try:
-            seconds = (self.__size - self.processed_bytes()) / self.speed_raw()
+            seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
         except:
             return '-'
@@ -52,10 +55,9 @@ class ZipStatus:
 
     def processed_bytes(self):
         if self.__listener.newDir:
-            size = async_to_sync(get_path_size, f"{DOWNLOAD_DIR}{self.__uid}10000")
+            return async_to_sync(get_path_size, f"{DOWNLOAD_DIR}{self.__uid}10000")
         else:
-            size = async_to_sync(get_path_size, f"{DOWNLOAD_DIR}{self.__uid}") - self.__size
-        return get_readable_file_size(size)
+            return async_to_sync(get_path_size, f"{DOWNLOAD_DIR}{self.__uid}") - self.__size
 
     def download(self):
         return self
